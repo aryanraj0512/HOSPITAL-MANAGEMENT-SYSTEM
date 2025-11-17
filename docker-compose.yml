@@ -1,0 +1,58 @@
+docker-compose.ymlversion: '3.8'
+
+services:
+  frontend:
+    container_name: hospital-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - REACT_APP_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - hospital-network
+
+  backend:
+    container_name: hospital-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_NAME=hospital_db
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - JWT_SECRET=your-secret-key
+      - NODE_ENV=development
+    depends_on:
+      - mongodb
+    networks:
+      - hospital-network
+
+  mongodb:
+    container_name: hospital-mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=hospital_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - hospital-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  hospital-network:
+    driver: bridge
